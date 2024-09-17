@@ -121,6 +121,14 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>0.8.12</version>
+                <configuration>
+                    <excludes>
+                        <exclude>com/dmdev/dto/*</exclude>
+                        <exclude>com/dmdev/entity/*</exclude>
+                        <exclude>com/dmdev/exception/*</exclude>
+                        <exclude>com/dmdev/validator/Error.class</exclude>
+                    </excludes>
+                </configuration>
                 <executions>
                     <execution>
                         <id>prepare-agent</id>
