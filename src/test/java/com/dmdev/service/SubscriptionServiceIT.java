@@ -39,7 +39,7 @@ class SubscriptionServiceIT extends IntegrationTestBase {
 
     @Test
     void shouldUpdateIfIdIsNotNull() {
-        Subscription subscription = subscriptionDao.insert(getSubscription());
+        Subscription subscription = subscriptionDao.insert(getSubscription(Status.ACTIVE));
         CreateSubscriptionDto createSubscriptionDto = getSubscriptionDto(subscription.getUserId(), subscription.getName());
 
         Subscription actualResult = subscriptionService.upsert(createSubscriptionDto);
@@ -51,26 +51,29 @@ class SubscriptionServiceIT extends IntegrationTestBase {
 
     @Test
     void shouldThrowExceptionIfSubscriptionStatusIsNotActive() {
-        Subscription subscription = Subscription.builder()
-                .userId(1)
-                .name("Andrei")
-                .provider(Provider.APPLE)
-                .expirationDate(Instant.now().plus(5, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS))
-                .status(Status.CANCELED)
-                .build();
+        Subscription subscription = subscriptionDao.insert(getSubscription(Status.EXPIRED));
 
-        Subscription createdSubscription = subscriptionDao.insert(subscription);
-
-        assertThrows(SubscriptionException.class, () -> subscriptionService.cancel(createdSubscription.getId()));
+        SubscriptionException actualResult = assertThrows(SubscriptionException.class,
+                () -> subscriptionService.cancel(subscription.getId()));
+        assertEquals("Only active subscription %d can be canceled".formatted(subscription.getId()), actualResult.getMessage());
     }
 
-    private Subscription getSubscription() {
+    @Test
+    void shouldThrowExceptionIfSubscriptionStatusIsExpired() {
+        Subscription subscription = subscriptionDao.insert(getSubscription(Status.EXPIRED));
+
+        SubscriptionException actualResult = assertThrows(SubscriptionException.class,
+                () -> subscriptionService.expire(subscription.getId()));
+        assertEquals("Subscription %d has already expired".formatted(subscription.getId()), actualResult.getMessage());
+    }
+
+    private Subscription getSubscription(Status status) {
         return Subscription.builder()
                 .userId(1)
                 .name("Andrei")
                 .provider(Provider.APPLE)
                 .expirationDate(Instant.now().plus(5, ChronoUnit.DAYS).truncatedTo(ChronoUnit.SECONDS))
-                .status(Status.ACTIVE)
+                .status(status)
                 .build();
     }
 
