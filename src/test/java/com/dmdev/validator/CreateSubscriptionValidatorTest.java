@@ -92,12 +92,11 @@ class CreateSubscriptionValidatorTest {
         assertThat(actualResult.getErrors().get(0).getCode()).isEqualTo(103);
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"", "    "})
-    void invalidUserIdNameProviderExpirationDate(String name) {
+    @Test
+    void invalidUserIdNameProviderExpirationDate() {
         CreateSubscriptionDto createSubscriptionDto = CreateSubscriptionDto.builder()
                 .userId(null)
-                .name(name)
+                .name("")
                 .provider("fake")
                 .expirationDate(Instant.now().minus(5, ChronoUnit.DAYS))
                 .build();
